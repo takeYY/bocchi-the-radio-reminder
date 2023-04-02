@@ -1,0 +1,48 @@
+@startuml システム構成図
+!include <awslib/AWSCommon>
+!include <awslib/GroupIcons/Cloudalt>
+!include <awslib/ApplicationIntegration/EventBridgeRule>
+!include <awslib/Compute/Lambda>
+!include <awslib/ManagementGovernance/CloudWatch>
+
+
+
+!includeurl https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.1.0/common.puml
+!includeurl https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.1.0/font-awesome-5/slack.puml
+!includeurl https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.1.0/font-awesome-5/youtube.puml
+
+'left to right direction
+
+' ''''''''''''''''''
+' Overwrite default
+' ''''''''''''''''''
+!definelong AWSEntity(e_alias, e_label, e_techn, e_color, e_sprite, e_stereo)
+rectangle "==e_label\n<color:e_color><$e_sprite></color>\n" <<e_stereo>> as e_alias
+!enddefinelong
+
+!definelong AWSEntity(e_alias, e_label, e_techn, e_descr, e_color, e_sprite, e_stereo)
+rectangle "==e_label\n<color:e_color><$e_sprite></color>\n e_descr" <<e_stereo>> as e_alias
+!enddefinelong
+
+
+
+Cloudalt(aws, "AWS",  "") {
+  EventBridgeRule("eventBridge", "EventBridge Rule", "")
+  Lambda("lambda", "Lambda", "")
+  CloudWatch(cloudWatch, "CloudWatch", "")
+}
+
+
+FA5_YOUTUBE(youtube, "YouTube")
+FA5_SLACK(slack, "Slack")
+
+eventBridge --> lambda : 毎週水曜に実行
+
+lambda --> youtube : RSSをリクエスト
+youtube --> lambda : レスポンス
+
+lambda --> cloudWatch :ログ出力
+
+lambda --> slack :ぼっちざらじお通知
+
+@enduml
