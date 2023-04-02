@@ -1,7 +1,8 @@
 # 標準ライブラリ
 import json
 import os
-import logging
+from enum import Enum
+
 
 # 外部ライブラリ
 import feedparser
@@ -14,7 +15,15 @@ ANIPLEX_RDF = os.environ["ANIPLEX_RDF"]
 SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
 
 
-logger = logging.getLogger(__name__)
+class LogLevelEnum(Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+
+
+def __log(level: LogLevelEnum, message: str):
+    print(f"[{level.value}] {message}")
 
 
 def __is_bocchi_the_radio(target: str):
@@ -34,9 +43,9 @@ def __send_slack_webhook(message: str):
     res.raise_for_status()
 
 
-def handler(event, context):
+def lambda_handler(event, context):
     try:
-        logger.info("処理: 開始")
+        __log(level=LogLevelEnum.INFO, message="処理: 開始")
         # RSSでデータ取得
         parser_dict = feedparser.parse(ANIPLEX_RDF)
         for entry in parser_dict.entries:
@@ -44,30 +53,30 @@ def handler(event, context):
 
             # タイトルが違う場合、早期continue
             if not __is_bocchi_the_radio(target=title):
-                return
+                continue
 
             link = entry.link
-            logger.info(f"title: {title}, link: {link}")
+            __log(level=LogLevelEnum.INFO, message=f"title: {title}, link: {link}")
 
             slack_message = f"ぼっちざラジオの日だぞ！\n{link}"
             __send_slack_webhook(message=slack_message)
-            break
 
+            return dict(
+                status=200,
+                error_message=None,
+            )
+
+        __log(level=LogLevelEnum.WARNING, message="bocchi the radio is not found.")
         return dict(
-            status=200,
-            error_message=None,
+            status=404,
+            error_message="bocchi the radio is not found.",
         )
 
     except Exception as e:
-        logger.error(e, exc_info=True)
+        __log(level=LogLevelEnum.ERROR, message=str(e))
         return dict(
             status=200,
             error_message=str(e),
         )
     finally:
-        logger.info("処理: 終了")
-
-
-if __name__ == "__main__":
-    handler("", "")
-    pass
+        __log(level=LogLevelEnum.INFO, message="処理: 終了")
