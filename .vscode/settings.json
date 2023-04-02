@@ -25,6 +25,6 @@
     "editor.insertSpaces": true,
     "editor.defaultFormatter": "ms-python.python"
   },
-  "cSpell.words": ["dotenv", "aniplex"],
+  "cSpell.words": ["dotenv", "aniplex", "bocchi"],
   "python.analysis.typeCheckingMode": "basic"
 }
